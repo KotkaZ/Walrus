@@ -1,0 +1,39 @@
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!src/src/main/**/build/
+!src/src/test/**/build/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!src/src/main/**/bin/
+!src/src/test/**/bin/
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+!src/src/main/**/out/
+!src/src/test/**/out/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+### OpenAPI generated sources ###
+/generated-sources/

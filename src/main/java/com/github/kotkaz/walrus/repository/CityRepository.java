@@ -1,0 +1,8 @@
+package com.github.kotkaz.walrus.repository;
+
+import com.github.kotkaz.walrus.model.City;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface CityRepository extends JpaRepository<City, Integer> {
+
+}

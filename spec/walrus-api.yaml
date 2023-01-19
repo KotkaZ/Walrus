@@ -1,0 +1,126 @@
+openapi: 3.0.3
+info:
+  title: Walrus API
+  version: 0.0.1
+  description: |
+    This API is only used by Walrus frontend application for mocking purposes.
+
+servers:
+  - url: http://localhost:8080/
+    description: Local development server
+
+externalDocs:
+  url: https://swagger.io/specification/
+  description: Find more information about OAS3.0 standard.
+
+tags:
+  - name: CityExplorer
+    description: API for services related managing city information.
+
+paths:
+  /cities:
+    get:
+      operationId: getCities
+      tags:
+        - CityExplorer
+      summary: Queries all cities with given filters.
+      description: Selects all cities stored in database and returns them as an array of cities.
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Successful query returns an array of cities.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CityPage'
+
+
+  /cities/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: The city identifier, as cityId
+        schema:
+          type: integer
+    put:
+      operationId: editCity
+      tags:
+        - CityExplorer
+      summary: Edits given city by id.
+      description: Queries city by id and updates its name and photo.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/City'
+      responses:
+        '200':
+          description: Successful update returns an updated city.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/City'
+        '404':
+          description: City with given id does not exists
+
+components:
+  schemas:
+    CityPage:
+      type: object
+      required:
+        - cities
+        - nextPage
+        - size
+        - totalPages
+      properties:
+        cities:
+          type: array
+          items:
+            $ref: '#/components/schemas/City'
+        nextPage:
+          type: integer
+        size:
+          type: integer
+        totalPages:
+          type: integer
+
+    City:
+      type: object
+      required:
+        - name
+        - photo
+      properties:
+        id:
+          type: integer
+          description: Unique city integer value code
+        name:
+          type: string
+          description: City name
+          minLength: 1
+        photo:
+          type: string
+          description: City image URL
+          minLength: 1
+  parameters:
+    Page:
+      name: page
+      in: query
+      description: Token for the next page
+      required: false
+      schema:
+        type: integer
+        minimum: 0
+
+    Size:
+      name: size
+      in: query
+      description: Number of entries per page.
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100

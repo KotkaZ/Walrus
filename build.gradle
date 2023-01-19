@@ -1,0 +1,126 @@
+plugins {
+    id 'org.springframework.boot' version '2.7.4'
+    id 'io.spring.dependency-management' version '1.0.14.RELEASE'
+    id 'org.openapi.generator' version '6.2.0'
+    id 'java'
+    id 'jacoco'
+}
+
+group = 'com.github.kotkaz'
+version = '0.0.1'
+sourceCompatibility = '17'
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven { url 'https://repo.spring.io/milestone' }
+    maven { url 'https://repo.spring.io/snapshot' }
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.apache.commons:commons-csv:1.9.0'
+    implementation 'org.mapstruct:mapstruct:1.5.3.Final'
+
+    compileOnly 'org.projectlombok:lombok'
+
+    runtimeOnly 'com.h2database:h2'
+
+    annotationProcessor 'org.projectlombok:lombok'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.3.Final'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src/main/java'
+            srcDir 'generated-sources/src/main/java'
+        }
+    }
+}
+
+def openapiSpecList = [
+        "walrus-api.yaml".toString(),
+]
+
+import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
+
+openapiSpecList.each {
+    def apiName = it.replace(".yaml", "")
+    def taskName = "generate" + apiName.capitalize()
+    tasks.register(taskName, GenerateTask.class, {
+        generatorName = "spring"
+
+        inputSpec = "$rootDir/spec/".toString() + "${apiName}.yaml"
+        outputDir = "$rootDir/generated-sources".toString()
+
+        apiPackage = "com.github.kotkaz.walrus.api"
+        modelPackage = "com.github.kotkaz.walrus.dto"
+
+        generateApiTests = false
+        generateApiDocumentation = false
+
+        generateModelTests = false
+        generateModelDocumentation = false
+
+        verbose = false
+        skipOverwrite = false
+
+        configOptions = [
+                dateLibrary            : "java8",
+                documentationProvider  : "none",
+                hideGenerationTimestamp: "true",
+                useOptional            : "true",
+                useSwaggerUI           : "true",
+                delegatePattern        : "false",
+                interfaceOnly          : "true",
+                useTags                : "true",
+                openApiNullable        : "false",
+                title                  : "Walrus API",
+        ]
+    })
+
+    tasks.named(taskName) {
+        doLast {
+            delete "$rootDir/generated-sources/.openapi-generator"
+            delete "$rootDir/generated-sources/src/test"
+            delete "$rootDir/generated-sources/src/main/resources"
+            delete "$rootDir/generated-sources/src/main/java/org"
+            delete "$rootDir/generated-sources/.openapi-generator-ignore"
+            delete "$rootDir/generated-sources/pom.xml"
+            delete "$rootDir/generated-sources/README.md"
+        }
+    }
+    compileJava.dependsOn(taskName)
+}
+
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+jacocoTestReport {
+    dependsOn test // tests are required to run before generating the report
+
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                    "com/github/kotkaz/walrus/api/*",
+                    "com/github/kotkaz/walrus/dto/*",
+                    "com/github/kotkaz/walrus/mapper/*",
+                    "com/github/kotkaz/walrus/model/*",
+            ])
+        }))
+    }
+}
