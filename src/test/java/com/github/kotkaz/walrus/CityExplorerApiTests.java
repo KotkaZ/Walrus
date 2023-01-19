@@ -29,8 +29,8 @@ public class CityExplorerApiTests {
 
     @Test
     public void getCitiesWithoutPaginationUsesFallback() {
-        val responseEntity =
-            cityExplorerApi.getCities(Optional.empty(), Optional.empty(), Optional.empty());
+        val responseEntity = cityExplorerApi
+            .getCities(Optional.empty(), Optional.empty(), Optional.empty());
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
 
         val cityPage = responseEntity.getBody();
