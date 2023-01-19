@@ -28,6 +28,13 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Page'
         - $ref: '#/components/parameters/Size'
+        - name: name
+          in: query
+          description: A name filter value
+          required: false
+          schema:
+            type: string
+            minLength: 1
       responses:
         '200':
           description: Successful query returns an array of cities.

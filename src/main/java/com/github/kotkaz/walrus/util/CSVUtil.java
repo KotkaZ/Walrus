@@ -36,7 +36,7 @@ public class CSVUtil {
                 .toList();
 
         } catch (IOException e) {
-            throw new RuntimeException("fail to parse CSV file: " + e.getMessage());
+            throw new RuntimeException("Failed to parse CSV file: " + e.getMessage());
         }
     }
 }

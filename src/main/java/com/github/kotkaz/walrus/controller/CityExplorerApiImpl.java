@@ -6,8 +6,6 @@ import com.github.kotkaz.walrus.dto.CityPage;
 import com.github.kotkaz.walrus.mapper.CityMapper;
 import com.github.kotkaz.walrus.repository.CityRepository;
 import java.util.Optional;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -32,13 +30,15 @@ public class CityExplorerApiImpl implements CityExplorerApi {
 
     @Override
     public ResponseEntity<CityPage> getCities(Optional<Integer> page,
-                                              Optional<Integer> size) {
-
+                                              Optional<Integer> size,
+                                              Optional<String> name) {
         val pageNr = page.orElse(DEFAULT_PAGE);
         val sizeNr = size.orElse(DEFAULT_PAGE_SIZE);
 
         val pageable = PageRequest.of(pageNr, sizeNr);
-        val citiesPageEntity = cityRepository.findAll(pageable);
+        val citiesPageEntity = name.isEmpty()
+            ? cityRepository.findAll(pageable)
+            : cityRepository.findAllByNameContainingIgnoreCase(name.get(), pageable);
 
         val cityPage = new CityPage();
         cityPage.setCities(cityMapper.entitiesToDtoList(citiesPageEntity.getContent()));

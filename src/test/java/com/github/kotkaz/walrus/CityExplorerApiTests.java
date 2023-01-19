@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.github.kotkaz.walrus.api.CityExplorerApi;
 import com.github.kotkaz.walrus.dto.City;
@@ -28,7 +29,8 @@ public class CityExplorerApiTests {
 
     @Test
     public void getCitiesWithoutPaginationUsesFallback() {
-        val responseEntity = cityExplorerApi.getCities(Optional.empty(), Optional.empty());
+        val responseEntity =
+            cityExplorerApi.getCities(Optional.empty(), Optional.empty(), Optional.empty());
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
 
         val cityPage = responseEntity.getBody();
@@ -44,7 +46,8 @@ public class CityExplorerApiTests {
 
     @Test
     public void getCitiesWithPagination() {
-        val responseEntity = cityExplorerApi.getCities(Optional.of(10), Optional.of(50));
+        val responseEntity = cityExplorerApi
+            .getCities(Optional.of(10), Optional.of(50), Optional.empty());
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
 
         val cityPage = responseEntity.getBody();
@@ -61,13 +64,14 @@ public class CityExplorerApiTests {
     public void getCitiesWithTooLargeSizeThrowsAnError() {
         assertThrows(
             ConstraintViolationException.class,
-            () -> cityExplorerApi.getCities(Optional.of(0), Optional.of(1000))
+            () -> cityExplorerApi.getCities(Optional.of(0), Optional.of(1000), Optional.empty())
         );
     }
 
     @Test
     public void getCitiesWithTooLargePageNumberReturnsEmptyList() {
-        val responseEntity = cityExplorerApi.getCities(Optional.of(1000), Optional.of(100));
+        val responseEntity = cityExplorerApi
+            .getCities(Optional.of(1000), Optional.of(100), Optional.empty());
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
 
         val cityPage = responseEntity.getBody();
@@ -78,6 +82,57 @@ public class CityExplorerApiTests {
 
         val cities = cityPage.getCities();
         assertEquals(0, cities.size());
+    }
+
+    @Test
+    public void getCitiesFiltersBySpecificName() {
+        val responseEntity = cityExplorerApi
+            .getCities(Optional.empty(), Optional.empty(), Optional.of("Tallinn"));
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+
+        val cityPage = responseEntity.getBody();
+        assertNotNull(cityPage);
+        assertEquals(1, cityPage.getTotalPages());
+        assertEquals(20, cityPage.getSize());
+        assertEquals(0, cityPage.getNextPage());
+
+        val cities = cityPage.getCities();
+        assertEquals(1, cities.size());
+        assertTrue(cities.stream().allMatch(city -> "Tallinn".equals(city.getName())));
+    }
+
+    @Test
+    public void getCitiesFiltersByPartialName() {
+        val responseEntity = cityExplorerApi
+            .getCities(Optional.empty(), Optional.empty(), Optional.of("a"));
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+
+        val cityPage = responseEntity.getBody();
+        assertNotNull(cityPage);
+        assertEquals(36, cityPage.getTotalPages());
+        assertEquals(20, cityPage.getSize());
+        assertEquals(1, cityPage.getNextPage());
+
+        val cities = cityPage.getCities();
+        assertEquals(20, cities.size());
+        assertTrue(cities.stream().allMatch(city -> city.getName().toLowerCase().contains("a")));
+    }
+
+    @Test
+    public void getCitiesFiltersByPartialNameWithPagination() {
+        val responseEntity = cityExplorerApi
+            .getCities(Optional.of(3), Optional.of(50), Optional.of("a"));
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+
+        val cityPage = responseEntity.getBody();
+        assertNotNull(cityPage);
+        assertEquals(15, cityPage.getTotalPages());
+        assertEquals(50, cityPage.getSize());
+        assertEquals(4, cityPage.getNextPage());
+
+        val cities = cityPage.getCities();
+        assertEquals(50, cities.size());
+        assertTrue(cities.stream().allMatch(city -> city.getName().toLowerCase().contains("a")));
     }
 
     @Test
