@@ -12,6 +12,7 @@ import lombok.val;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
@@ -28,6 +29,9 @@ public class CityExplorerApiImpl implements CityExplorerApi {
     private final CityMapper cityMapper;
 
 
+    // Just for dev purposes.
+    // In real situation, this should be replaced for example with reverse proxy.
+    @CrossOrigin(origins = "http://localhost:3000")
     @Override
     public ResponseEntity<CityPage> getCities(Optional<Integer> page,
                                               Optional<Integer> size,
@@ -52,6 +56,9 @@ public class CityExplorerApiImpl implements CityExplorerApi {
     }
 
 
+    // Just for dev purposes.
+    // In real situation, this should be replaced for example with reverse proxy.
+    @CrossOrigin(origins = "http://localhost:3000")
     @Override
     public ResponseEntity<City> editCity(Integer id, City city) {
         val optionalCity = cityRepository.findById(id);
